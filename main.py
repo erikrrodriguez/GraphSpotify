@@ -1,11 +1,16 @@
 import spotipy
 import string
+import dev_settings
 from bokeh.plotting import *
 from bokeh.models import *
 from bokeh.layouts import *
 from spotipy.oauth2 import SpotifyClientCredentials
 from collections import OrderedDict
 from math import pi
+
+client_credentials_manager = SpotifyClientCredentials(dev_settings.SPOTIFY_CLIENT_ID, dev_settings.SPOTIFY_CLIENT_SECRET)
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+sp.trace = False
 
 class Artist:
     def __init__(self, search):
@@ -85,84 +90,110 @@ class Track:
     def print_all(self):
         print('    ' + self.name)
 
-def search_spotify(name):
+def search_spotify():
+    global data_source
     if search_select.active == 0:
-        results = sp.search(q='artist:' + name, type='artist')
+        results = sp.search(q='artist:' + text_input.value, type='artist', limit=1)
         items = results['artists']['items']
         if len(items) > 0:
-            return Artist(items[0])
+            data_source = Artist(items[0])
     else:
-        results = sp.search(q='album:' + name, type='album')
+        results = sp.search(q='album:' + text_input.value, type='album', limit=1)
         items = results['albums']['items']
         if len(items) > 0:
-            return Album(items[0])
+            data_source = Album(items[0])
+    update_data()
 
-def prep_data(data_source):
+def update_features(attr, old, new):
+    global selected_graph_features
+    selected_graph_features = []
+    for i in feature_choices.active:
+        selected_graph_features.extend(graph_features[i])
+    update_data()
+
+def update_data():
+    global data, x, y, lines_x, lines_y
     data = data_source.albums if data_source.type is 'artist' else data_source.tracks
     x = []
     y = []
     for key, val in data.items():
-        x.append([val.axis_label]*len(graph_features))
+        x.append([val.axis_label]*len(selected_graph_features))
         y.append([val.features[key] for key in val.features.keys() if key.capitalize() in graph_features])
 
     lines_x = [[val.axis_label for val in data.values()]]*len(graph_features)
     lines_y = list(map(list,zip(*y)))
-    return data, x, y, lines_x, lines_y
+    graph_data()
+
+def graph_data():
+    global p, legend_items, legend
+    p.title = data_source.name
+    # p.width = min(200*len(data.keys()),1500)
+    # p.height=750
+    p.x_range = [val.axis_label for val in data.values()]
+    p.xaxis.axis_label = "Albums" if search_select.active == 0 else 'Tracks'
+    p.yaxis.axis_label = "Scaled Features"
+    p.multi_line(lines_x, lines_y, color=colors, line_width=2)
+    for i in range(len(x)):
+        if i == 0:
+            count = 0
+            for (colr, leg, _x, _y ) in zip(colors, graph_features, x[0], y[0]):
+                legend_items[count] = p.circle([_x], [_y], size=15, fill_color=colr)
+                count += 1
+        else:
+            p.circle(x[i], y[i], size=15, fill_color=colors)
+    
+    # legend = Legend(items=zip(graph_features, legend_items), location=(0, 0), orientation="vertical")
+    legend = Legend(items=[
+            (graph_features[0], [legend_items[0]]),
+            (graph_features[1], [legend_items[1]]),
+            (graph_features[2], [legend_items[2]]),
+            (graph_features[3], [legend_items[3]]),
+            (graph_features[4], [legend_items[4]]),
+            (graph_features[5], [legend_items[5]]),
+            (graph_features[6], [legend_items[6]]),
+            (graph_features[7], [legend_items[7]]),
+        ], location=(0, 0), orientation="vertical")
+    p.add_layout(legend, 'right')
+
 
 colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black']
 graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
 selected_graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
 
+data_source = []
+data = []
+x = []
+y = []
+lines_x = []
+lines_y = []
+legend_items = [0]*len(feature_choices.active)
+legend = []
+
+# p = figure(title=data_source.name, 
+#            x_range=[val.axis_label for val in data.values()], y_range=(0.0,1.0),
+#            tools='pan,wheel_zoom',toolbar_location="above", toolbar_sticky=False,
+           # width=min(200*len(data.keys()),1500), height=750)
+p = figure(title='', 
+           x_range=(0.0,1.0), y_range=(0.0,1.0),
+           tools='pan, wheel_zoom',toolbar_location="above", toolbar_sticky=False,
+           width=750, height=750)
+p.title.align = "center"
+p.xaxis.axis_label_standoff = 20
+p.yaxis.axis_label_standoff = 20
+p.xaxis.major_label_orientation = pi/4
+p.background_fill_color = "gray"
+p.background_fill_alpha = 0.5
+
 search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0)
 text_input = TextInput(value="", title="")
 search_button = Button(label="Search",button_type="success")
-feature_choices = CheckboxButtonGroup(labels=graph_features, active=[0,1,2,3,4,5,6,7])
+feature_choices = CheckboxButtonGroup(labels=graph_features, active=[])
 controls = widgetbox(search_select, text_input, search_button, feature_choices)
 
+search_button.on_click(search_spotify)
+feature_choices.on_change('active', update_features)
 
-data_source = search_spotify("Flying Lotus")
-(data, x, y, lines_x, lines_y) = prep_data(data_source)
-
-p = figure(title=data_source.name, 
-           x_range=[val.axis_label for val in data.values()], y_range=(0.0,1.0),
-           tools='pan,wheel_zoom',toolbar_location="above", toolbar_sticky=False,
-           width=min(200*len(data.keys()),1500), height=750)
-p.title.align = "center"
-p.xaxis.axis_label = "Albums" if search_select.active == 0 else 'Tracks'
-p.yaxis.axis_label = "Scaled Features"
-p.xaxis.axis_label_standoff = 20
-p.yaxis.axis_label_standoff = 20
-p.background_fill_color = "gray"
-p.background_fill_alpha = 0.5
-p.xaxis.major_label_orientation = pi/4
-
-
-legend_items = [0]*len(feature_choices.active)
-p.multi_line(lines_x, lines_y, color=colors, line_width=2)
-for i in range(len(x)):
-    if i == 0:
-        count = 0
-        for (colr, leg, _x, _y ) in zip(colors, graph_features, x[0], y[0]):
-            legend_items[count] = p.circle([_x], [_y], size=15, fill_color=colr)
-            count += 1
-    else:
-        p.circle(x[i], y[i], size=15, fill_color=colors)
-
-legend = Legend(items=[
-        (graph_features[0], [legend_items[0]]),
-        (graph_features[1], [legend_items[1]]),
-        (graph_features[2], [legend_items[2]]),
-        (graph_features[3], [legend_items[3]]),
-        (graph_features[4], [legend_items[4]]),
-        (graph_features[5], [legend_items[5]]),
-        (graph_features[6], [legend_items[6]]),
-        (graph_features[7], [legend_items[7]]),
-    ], location=(0, 0), orientation="vertical")
-p.add_layout(legend, 'right')
-
-# legend = Legend(items=zip(graph_features, legend_items), location=(0, 0), orientation="vertical")
-# p.add_layout(legend, 'right')
-
+# bokeh.plotting.reset_output
 output_file("lines.html")
 layout = row(controls, p)
 show(layout)

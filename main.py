@@ -92,6 +92,7 @@ class Track:
 
 def search_spotify():
     global data_source
+    print('clicked')
     if search_select.active == 0:
         results = sp.search(q='artist:' + text_input.value, type='artist', limit=1)
         items = results['artists']['items']
@@ -102,13 +103,29 @@ def search_spotify():
         items = results['albums']['items']
         if len(items) > 0:
             data_source = Album(items[0])
+    print("searched")
     update_data()
+
+# def search_spotify(name):
+#     global data_source
+#     if search_select.active == 0:
+#         results = sp.search(q='artist:' + name, type='artist', limit=1)
+#         items = results['artists']['items']
+#         if len(items) > 0:
+#             data_source = Artist(items[0])
+#     else:
+#         results = sp.search(q='album:' + name, type='album', limit=1)
+#         items = results['albums']['items']
+#         if len(items) > 0:
+#             data_source = Album(items[0])
+#     update_data()
 
 def update_features(attr, old, new):
     global selected_graph_features
     selected_graph_features = []
     for i in feature_choices.active:
         selected_graph_features.extend(graph_features[i])
+    print('features updated')
     update_data()
 
 def update_data():
@@ -118,25 +135,34 @@ def update_data():
     y = []
     for key, val in data.items():
         x.append([val.axis_label]*len(selected_graph_features))
-        y.append([val.features[key] for key in val.features.keys() if key.capitalize() in graph_features])
+        y.append([val.features[key] for key in val.features.keys() if key.capitalize() in selected_graph_features])
 
-    lines_x = [[val.axis_label for val in data.values()]]*len(graph_features)
+    lines_x = [[val.axis_label for val in data.values()]]*len(selected_graph_features)
     lines_y = list(map(list,zip(*y)))
+    print('data updated')
     graph_data()
 
 def graph_data():
-    global p, legend_items, legend
-    p.title = data_source.name
-    # p.width = min(200*len(data.keys()),1500)
-    # p.height=750
-    p.x_range = [val.axis_label for val in data.values()]
+    global p, layout, legend_items, legend
+    p.title.text = data_source.name
+    p.title.align = "center"
+    p.x_range.factors = [val.axis_label for val in data.values()]
+    p.width = min(200*len(data.keys()),1500)
     p.xaxis.axis_label = "Albums" if search_select.active == 0 else 'Tracks'
     p.yaxis.axis_label = "Scaled Features"
+    p.xaxis.axis_label_standoff = 20
+    p.yaxis.axis_label_standoff = 20
+    p.xaxis.major_label_orientation = pi/4
+    p.background_fill_color = "gray"
+    p.background_fill_alpha = 0.5
+
+    print(lines_x, lines_y, colors)
     p.multi_line(lines_x, lines_y, color=colors, line_width=2)
     for i in range(len(x)):
         if i == 0:
             count = 0
-            for (colr, leg, _x, _y ) in zip(colors, graph_features, x[0], y[0]):
+            for (colr, _x, _y ) in zip(colors, x[0], y[0]):
+                print(_x, _y, colr)
                 legend_items[count] = p.circle([_x], [_y], size=15, fill_color=colr)
                 count += 1
         else:
@@ -154,11 +180,20 @@ def graph_data():
             (graph_features[7], [legend_items[7]]),
         ], location=(0, 0), orientation="vertical")
     p.add_layout(legend, 'right')
-
+    print('graph updated')
 
 colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black']
 graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
 selected_graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
+
+search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0)
+text_input = TextInput(value="", title="")
+search_button = Button(label="Search",button_type="success")
+feature_choices = CheckboxButtonGroup(labels=graph_features, active=[0,1,2,3,4,5,6,7])
+controls = widgetbox(search_select, text_input, search_button, feature_choices)
+
+search_button.on_click(search_spotify)
+feature_choices.on_change('active', update_features)
 
 data_source = []
 data = []
@@ -169,33 +204,20 @@ lines_y = []
 legend_items = [0]*len(feature_choices.active)
 legend = []
 
-# p = figure(title=data_source.name, 
-#            x_range=[val.axis_label for val in data.values()], y_range=(0.0,1.0),
-#            tools='pan,wheel_zoom',toolbar_location="above", toolbar_sticky=False,
-           # width=min(200*len(data.keys()),1500), height=750)
 p = figure(title='', 
-           x_range=(0.0,1.0), y_range=(0.0,1.0),
+           x_range=[''], y_range=(0.0,1.0),
            tools='pan, wheel_zoom',toolbar_location="above", toolbar_sticky=False,
            width=750, height=750)
-p.title.align = "center"
-p.xaxis.axis_label_standoff = 20
-p.yaxis.axis_label_standoff = 20
-p.xaxis.major_label_orientation = pi/4
 p.background_fill_color = "gray"
 p.background_fill_alpha = 0.5
 
-search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0)
-text_input = TextInput(value="", title="")
-search_button = Button(label="Search",button_type="success")
-feature_choices = CheckboxButtonGroup(labels=graph_features, active=[])
-controls = widgetbox(search_select, text_input, search_button, feature_choices)
-
-search_button.on_click(search_spotify)
-feature_choices.on_change('active', update_features)
-
-# bokeh.plotting.reset_output
-output_file("lines.html")
+# search_spotify("Erbear")
 layout = row(controls, p)
-show(layout)
+
+# output_file("lines.html")
+# show(layout)
+
+curdoc().add_root(layout)
+curdoc().title = "Spotify Graph"
 
 

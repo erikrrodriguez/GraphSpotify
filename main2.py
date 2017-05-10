@@ -91,34 +91,35 @@ class Track:
         print('    ' + self.name)
 
 def search_spotify():
-    global data_source
     print('clicked')
+    global ds
+    ds = []
     if search_select.active == 0:
         results = sp.search(q='artist:' + text_input.value, type='artist', limit=1)
         items = results['artists']['items']
         if len(items) > 0:
-            data_source = Artist(items[0])
+            ds = Artist(items[0])
     else:
         results = sp.search(q='album:' + text_input.value, type='album', limit=1)
         items = results['albums']['items']
         if len(items) > 0:
-            data_source = Album(items[0])
+            ds = Album(items[0])
     print("searched")
-    update_data()
+    update_data(ds)
 
 def search_spotify2(name):
-    global data_source
+    global ds
     if search_select.active == 0:
         results = sp.search(q='artist:' + name, type='artist', limit=1)
         items = results['artists']['items']
         if len(items) > 0:
-            data_source = Artist(items[0])
+            ds = Artist(items[0])
     else:
         results = sp.search(q='album:' + name, type='album', limit=1)
         items = results['albums']['items']
         if len(items) > 0:
-            data_source = Album(items[0])
-    update_data()
+            ds = Album(items[0])
+    update_data(ds)
 
 def update_features(attr, old, new):
     global selected_graph_features
@@ -128,67 +129,49 @@ def update_features(attr, old, new):
     print('features updated')
     update_data()
 
-def update_data():
-    global data, x, y, lines_x, lines_y
-    data = data_source.albums if data_source.type is 'artist' else data_source.tracks
+def update_data(ds):
+    data = ds.albums if ds.type is 'artist' else ds.tracks
     x = []
     y = []
     for key, val in data.items():
-        x.append([val.axis_label]*len(selected_graph_features))
-        y.append([val.features[key] for key in val.features.keys() if key.capitalize() in selected_graph_features])
+        x.extend([val.axis_label]*len(selected_graph_features))
+        y.extend([val.features[key] for key in val.features.keys() if key.capitalize() in selected_graph_features])
 
     lines_x = [[val.axis_label for val in data.values()]]*len(selected_graph_features)
-    lines_y = list(map(list,zip(*y)))
-    print('data updated')
-    print(x)
-    print()
-    print(lines_x)
-    print()
-    print(y)
-    print()
-    print(lines_y)
-    graph_data()
+    chunk_size = len(selected_graph_features) #number of albums or tracks
+    chunks = [y[i:i+chunk_size] for i in range(0, len(y), chunk_size)] #split y into list of chunks
+    lines_y = list(map(list,zip(*chunks)))
 
-def graph_data():
-    global p, layout, legend_items, legend, multiline
-    p.title.text = data_source.name
+    # print(x)
+    # print()
+    # print(lines_x)
+    # print()
+    # print(y)
+    # print()
+    # print(chunks)
+    # print()
+    # print(lines_y)
+    # print()
+    # print(len(lines_x), len(lines_y),len(colors[:len(selected_graph_features)]*int(len(data.values())/2)))
+
+    p.title.text = ds.name
     p.title.align = "center"
     p.x_range.factors = [val.axis_label for val in data.values()]
-    p.width = max(750, min(200*len(data.keys()),1500))
+    # p.width = max(750, min(200*len(data.keys()),1300))
     p.xaxis.axis_label = "Albums" if search_select.active == 0 else 'Tracks'
     p.yaxis.axis_label = "Scaled Features"
     p.xaxis.axis_label_standoff = 20
     p.yaxis.axis_label_standoff = 20
     p.xaxis.major_label_orientation = pi/4
-    p.background_fill_color = "gray"
-    p.background_fill_alpha = 0.5
 
-    #print(lines_x, lines_y, colors)
-    #p.multi_line(lines_x, lines_y, color=colors, line_width=2)
-    multiline.data_source.data = dict(xs=lines_x, ys=lines_y)
-    for i in range(len(x)):
-        if i == 0:
-            count = 0
-            for (colr, _x, _y ) in zip(colors, x[0], y[0]):
-                #print(_x, _y, colr)
-                legend_items[count] = p.circle([_x], [_y], size=15, fill_color=colr)
-                count += 1
-        else:
-            p.circle(x[i], y[i], size=15, fill_color=colors)
-    
-    # legend = Legend(items=zip(graph_features, legend_items), location=(0, 0), orientation="vertical")
-    legend = Legend(items=[
-            (graph_features[0], [legend_items[0]]),
-            (graph_features[1], [legend_items[1]]),
-            (graph_features[2], [legend_items[2]]),
-            (graph_features[3], [legend_items[3]]),
-            (graph_features[4], [legend_items[4]]),
-            (graph_features[5], [legend_items[5]]),
-            (graph_features[6], [legend_items[6]]),
-            (graph_features[7], [legend_items[7]]),
-        ], location=(0, 0), orientation="vertical")
-    p.add_layout(legend, 'right')
-    print('graph updated')
+    mlds.data = dict(xs=lines_x, ys=lines_y, line_color=colors[:len(selected_graph_features)]*int(len(data.values())/2))
+    cds.data = dict(x=x, y=y, fill_color=colors[:len(selected_graph_features)]*len(data.values()))
+    print('updated')
+
+# def chunks(l, n):
+#     Yield successive n-sized chunks from l.
+#     for i in range(0, len(l), n):
+#         yield l[i:i + n]
 
 colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black']
 graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
@@ -203,31 +186,32 @@ controls = widgetbox(search_select, text_input, search_button, feature_choices)
 search_button.on_click(search_spotify)
 feature_choices.on_change('active', update_features)
 
-data_source = []
-data = []
-x = []
-y = []
-lines_x = []
-lines_y = []
-legend_items = [0]*len(feature_choices.active)
-legend = []
+ds = []
 
 p = figure(title='', 
            x_range=[''], y_range=(0.0,1.0),
            tools='pan, wheel_zoom',toolbar_location="above", toolbar_sticky=False,
            width=750, height=750)
+p.title.text = "Artist / Album"
+p.title.align = "center"
 p.background_fill_color = "gray"
 p.background_fill_alpha = 0.5
-multiline = p.multi_line(lines_x, lines_y, color=colors, line_width=2)
 
+ml = p.multi_line(xs=[], ys=[], line_color=[])
+mlds = ml.data_source
+c  = p.circle(x=[], y=[], size=15, fill_color=[])
+cds = c.data_source
 
-search_spotify2("Flying Lotus")
+# legend_items = [0]*len(feature_choices.active)
+# legend = []
+
+# search_spotify2("Flying Lotus")
 layout = row(controls, p)
 
 # output_file("lines.html")
 # show(layout)
 
-# curdoc().add_root(layout)
-# curdoc().title = "Spotify Graph"
+curdoc().add_root(layout)
+curdoc().title = "Spotify Graph"
 
 

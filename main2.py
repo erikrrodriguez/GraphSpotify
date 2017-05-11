@@ -133,14 +133,17 @@ def update_data(ds):
     data = ds.albums if ds.type is 'artist' else ds.tracks
     x = []
     y = []
+    ly = []
     for key, val in data.items():
         x.extend([val.axis_label]*len(selected_graph_features))
         y.extend([val.features[key] for key in val.features.keys() if key.capitalize() in selected_graph_features])
+        ly.append([val.features[key] for key in val.features.keys() if key.capitalize() in selected_graph_features])
 
     lines_x = [[val.axis_label for val in data.values()]]*len(selected_graph_features)
-    chunk_size = len(selected_graph_features) #number of albums or tracks
-    chunks = [y[i:i+chunk_size] for i in range(0, len(y), chunk_size)] #split y into list of chunks
-    lines_y = list(map(list,zip(*chunks)))
+    lines_y = list(map(list,zip(*ly)))
+    # chunk_size = len(selected_graph_features) #number of albums or tracks
+    # chunks = [y[i:i+chunk_size] for i in range(0, len(y), chunk_size)] #split y into list of chunks
+    # lines_y = list(map(list,zip(*chunks)))
 
     # print(x)
     # print()
@@ -148,25 +151,46 @@ def update_data(ds):
     # print()
     # print(y)
     # print()
-    # print(chunks)
-    # print()
     # print(lines_y)
     # print()
-    # print(len(lines_x), len(lines_y),len(colors[:len(selected_graph_features)]*int(len(data.values())/2)))
+    # print(colors)
+    # print()
+    # print(len(x), len(y),len(colors[:len(selected_graph_features)]))
+    # print(len(lines_x), len(lines_y),len(colors[:len(selected_graph_features)]))
 
     p.title.text = ds.name
     p.title.align = "center"
     p.x_range.factors = [val.axis_label for val in data.values()]
     # p.width = max(750, min(200*len(data.keys()),1300))
+    p.width = 750
+    p.height = 750
     p.xaxis.axis_label = "Albums" if search_select.active == 0 else 'Tracks'
     p.yaxis.axis_label = "Scaled Features"
     p.xaxis.axis_label_standoff = 20
     p.yaxis.axis_label_standoff = 20
     p.xaxis.major_label_orientation = pi/4
 
-    mlds.data = dict(xs=lines_x, ys=lines_y, line_color=colors[:len(selected_graph_features)]*int(len(data.values())/2))
+    mlds.data = dict(xs=lines_x, ys=lines_y, line_color=colors[:len(selected_graph_features)])
     cds.data = dict(x=x, y=y, fill_color=colors[:len(selected_graph_features)]*len(data.values()))
-    print('updated')
+
+    legend_items = [0]*len(selected_graph_features)
+    count = 0
+    for feat, colr in zip(graph_features, colors):
+        if feat in selected_graph_features:
+            legend_items[count] = p.circle(x=[], y=[], size=15, fill_color=colr)
+        count = count + 1
+
+    legend = Legend(items=[
+            (graph_features[0], [legend_items[0]]),
+            (graph_features[1], [legend_items[1]]),
+            (graph_features[2], [legend_items[2]]),
+            (graph_features[3], [legend_items[3]]),
+            (graph_features[4], [legend_items[4]]),
+            (graph_features[5], [legend_items[5]]),
+            (graph_features[6], [legend_items[6]]),
+            (graph_features[7], [legend_items[7]]),
+        ], location=(0, 0), orientation="vertical")
+    p.add_layout(legend, 'right')
 
 # def chunks(l, n):
 #     Yield successive n-sized chunks from l.
@@ -201,9 +225,6 @@ ml = p.multi_line(xs=[], ys=[], line_color=[])
 mlds = ml.data_source
 c  = p.circle(x=[], y=[], size=15, fill_color=[])
 cds = c.data_source
-
-# legend_items = [0]*len(feature_choices.active)
-# legend = []
 
 # search_spotify2("Flying Lotus")
 layout = row(controls, p)

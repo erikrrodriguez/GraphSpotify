@@ -1,6 +1,7 @@
 import spotipy
 import string
 import dev_settings
+from bokeh.palettes import Paired8
 from bokeh.plotting import *
 from bokeh.models import *
 from bokeh.layouts import *
@@ -122,41 +123,35 @@ def search_spotify2(name):
     update_data(ds)
 
 def update_features(attr, old, new):
-    global selected_graph_features
+    global selected_graph_features, selected_colors
     selected_graph_features = []
+    selected_colors = []
     for i in feature_choices.active:
         selected_graph_features.extend(graph_features[i])
+    selected_colors = [feat_color[key] for key in selected_graph_features]
     print('features updated')
     update_data()
 
 def update_data(ds):
+    global p
     data = ds.albums if ds.type is 'artist' else ds.tracks
     x = []
     y = []
+    lx = []
     ly = []
     for key, val in data.items():
         x.extend([val.axis_label]*len(selected_graph_features))
         y.extend([val.features[key] for key in val.features.keys() if key.capitalize() in selected_graph_features])
+        lx.append([val.axis_label]*len(selected_graph_features))
         ly.append([val.features[key] for key in val.features.keys() if key.capitalize() in selected_graph_features])
 
     lines_x = [[val.axis_label for val in data.values()]]*len(selected_graph_features)
     lines_y = list(map(list,zip(*ly)))
-    # chunk_size = len(selected_graph_features) #number of albums or tracks
-    # chunks = [y[i:i+chunk_size] for i in range(0, len(y), chunk_size)] #split y into list of chunks
-    # lines_y = list(map(list,zip(*chunks)))
 
-    # print(x)
-    # print()
-    # print(lines_x)
-    # print()
-    # print(y)
-    # print()
-    # print(lines_y)
-    # print()
-    # print(colors)
-    # print()
-    # print(len(x), len(y),len(colors[:len(selected_graph_features)]))
-    # print(len(lines_x), len(lines_y),len(colors[:len(selected_graph_features)]))
+    i = 0
+    for (colr, _x, _y) in zip(colors, lx[0], ly[0]):
+        p.circle([_x], [_y], size=15, fill_color=colr, legend=selected_graph_features[i])
+        i += 1
 
     p.title.text = ds.name
     p.title.align = "center"
@@ -169,48 +164,28 @@ def update_data(ds):
     p.xaxis.axis_label_standoff = 20
     p.yaxis.axis_label_standoff = 20
     p.xaxis.major_label_orientation = pi/4
+    p.legend.location = "top_right"
 
-    mlds.data = dict(xs=lines_x, ys=lines_y, line_color=colors[:len(selected_graph_features)])
-    cds.data = dict(x=x, y=y, fill_color=colors[:len(selected_graph_features)]*len(data.values()))
-
-    legend_items = [0]*len(selected_graph_features)
-    count = 0
-    for feat, colr in zip(graph_features, colors):
-        if feat in selected_graph_features:
-            legend_items[count] = p.circle(x=[], y=[], size=15, fill_color=colr)
-        count = count + 1
-
-    legend = Legend(items=[
-            (graph_features[0], [legend_items[0]]),
-            (graph_features[1], [legend_items[1]]),
-            (graph_features[2], [legend_items[2]]),
-            (graph_features[3], [legend_items[3]]),
-            (graph_features[4], [legend_items[4]]),
-            (graph_features[5], [legend_items[5]]),
-            (graph_features[6], [legend_items[6]]),
-            (graph_features[7], [legend_items[7]]),
-        ], location=(0, 0), orientation="vertical")
-    p.add_layout(legend, 'right')
-
-# def chunks(l, n):
-#     Yield successive n-sized chunks from l.
-#     for i in range(0, len(l), n):
-#         yield l[i:i + n]
+    mlds.data = dict(xs=lines_x, ys=lines_y, line_color=selected_colors)
+    cds.data = dict(x=x, y=y, fill_color=selected_colors*len(data.values()))
 
 colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black']
+selected_colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black']
 graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
 selected_graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
+feat_color = dict(zip(graph_features, colors))
 
-search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0)
-text_input = TextInput(value="", title="")
-search_button = Button(label="Search",button_type="success")
-feature_choices = CheckboxButtonGroup(labels=graph_features, active=[0,1,2,3,4,5,6,7])
+search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0, width=200)
+text_input = TextInput(value="", title="", width=200)
+search_button = Button(label="Search",button_type="success", width=200)
+feature_choices = CheckboxButtonGroup(labels=graph_features, active=[0,1,2,3], width=50)
 controls = widgetbox(search_select, text_input, search_button, feature_choices)
 
 search_button.on_click(search_spotify)
 feature_choices.on_change('active', update_features)
 
 ds = []
+legend=[]
 
 p = figure(title='', 
            x_range=[''], y_range=(0.0,1.0),
@@ -226,11 +201,7 @@ mlds = ml.data_source
 c  = p.circle(x=[], y=[], size=15, fill_color=[])
 cds = c.data_source
 
-# search_spotify2("Flying Lotus")
 layout = row(controls, p)
-
-# output_file("lines.html")
-# show(layout)
 
 curdoc().add_root(layout)
 curdoc().title = "Spotify Graph"

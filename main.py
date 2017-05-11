@@ -139,14 +139,14 @@ def update_data():
 
     lines_x = [[val.axis_label for val in data.values()]]*len(selected_graph_features)
     lines_y = list(map(list,zip(*y)))
-    print('data updated')
-    print(x)
-    print()
-    print(lines_x)
-    print()
-    print(y)
-    print()
-    print(lines_y)
+    # print('data updated')
+    # print(x)
+    # print()
+    # print(lines_x)
+    # print()
+    # print(y)
+    # print()
+    # print(lines_y)
     graph_data()
 
 def graph_data():
@@ -164,13 +164,14 @@ def graph_data():
     p.background_fill_alpha = 0.5
 
     #print(lines_x, lines_y, colors)
-    #p.multi_line(lines_x, lines_y, color=colors, line_width=2)
-    multiline.data_source.data = dict(xs=lines_x, ys=lines_y)
+    p.multi_line(lines_x, lines_y, color=colors, line_width=2)
+    # multiline.data_source.data = dict(xs=lines_x, ys=lines_y)
     for i in range(len(x)):
         if i == 0:
             count = 0
             for (colr, _x, _y ) in zip(colors, x[0], y[0]):
-                #print(_x, _y, colr)
+                # print(_x, _y, colr)
+                print(x[0], y[0])
                 legend_items[count] = p.circle([_x], [_y], size=15, fill_color=colr)
                 count += 1
         else:
@@ -218,14 +219,14 @@ p = figure(title='',
            width=750, height=750)
 p.background_fill_color = "gray"
 p.background_fill_alpha = 0.5
-multiline = p.multi_line(lines_x, lines_y, color=colors, line_width=2)
+# multiline = p.multi_line(lines_x, lines_y, color=colors, line_width=2)
 
 
-search_spotify2("Flying Lotus")
+search_spotify2("Erbear")
 layout = row(controls, p)
 
-# output_file("lines.html")
-# show(layout)
+output_file("lines.html")
+show(layout)
 
 # curdoc().add_root(layout)
 # curdoc().title = "Spotify Graph"

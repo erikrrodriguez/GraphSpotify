@@ -178,7 +178,7 @@ feat_color = dict(zip(graph_features, colors))
 search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0, width=200)
 text_input = TextInput(value="", title="", width=200)
 search_button = Button(label="Search",button_type="success", width=200)
-feature_choices = CheckboxButtonGroup(labels=graph_features, active=[0,1,2,3], width=50)
+feature_choices = CheckboxButtonGroup(labels=graph_features, active=[0,1,2,3,4,5,6,7], width=50)
 controls = widgetbox(search_select, text_input, search_button, feature_choices)
 
 search_button.on_click(search_spotify)
@@ -188,7 +188,7 @@ ds = []
 legend=[]
 
 p = figure(title='', 
-           x_range=[''], y_range=(0.0,1.0),
+           x_range=[''], y_range=(0.0,1.03),
            tools='pan, wheel_zoom',toolbar_location="above", toolbar_sticky=False,
            width=750, height=750)
 p.title.text = "Artist / Album"

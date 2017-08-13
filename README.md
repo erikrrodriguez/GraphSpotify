@@ -14,4 +14,5 @@ Currently a work in progress. Eventually intended to be a Heroku webapp.
 * Move graph legend off to the side
 * Allow selecting and de-selecting attributes
 * Allow search by album
+* Add a "popularity" metric.
 * Implement tooltip hover

@@ -10,7 +10,6 @@ Currently a work in progress. Eventually intended to be a Heroku webapp.
 ![Graph Spotify](http://i.imgur.com/NAUdDvD.jpg)
 
 # TO DO
-* Restructure code into classes
 * Move graph legend off to the side
 * Allow selecting and de-selecting attributes
 * Allow search by album

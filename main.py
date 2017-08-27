@@ -130,6 +130,9 @@ class Graph:
         self.cds = self.c.data_source
 
         self.layout = row(self.controls, self.p)
+        curdoc().add_root(self.layout)
+        curdoc().title = "Spotify Graph"
+
 
     def search_spotify(self):
         print('clicked')
@@ -206,8 +209,8 @@ class Graph:
         self.mlds.data = dict(xs=lines_x, ys=lines_y, line_color=self.selected_colors)
         self.cds.data = dict(x=x, y=y, fill_color=self.selected_colors*len(data.values()))
 
-graph = Graph()
-curdoc().add_root(graph.layout)
-curdoc().title = "Spotify Graph"
+if __name__ == "__main__":
+    graph = Graph()
+
 
 

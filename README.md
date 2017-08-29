@@ -5,13 +5,11 @@ Inspired by Kevin Wu's GraphTV project: http://graphtv.kevinformatics.com/ and C
 
 Uses Spotipy Library:https://github.com/plamere/spotipy for API access and Bokeh for data visualization.
 
-Currently a work in progress. Eventually intended to be a Heroku webapp.
+Currently a work in progress. Eventually intended to be a webapp.
 
 ![Graph Spotify](http://i.imgur.com/NAUdDvD.jpg)
 
 # TO DO
-* Move graph legend off to the side
-* Allow selecting and de-selecting attributes
+* Add Legend
 * Allow search by album
 * Add a "popularity" metric.
-* Implement tooltip hover

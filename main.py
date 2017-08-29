@@ -53,8 +53,9 @@ class Album:
         self.type = 'album'
         self.album = album
         self.name = album['name'].translate(str.maketrans("", "", string.punctuation))
-        self.release_date = album['release_date']
-        self.axis_label = self.name + ' (' + self.release_date + ')'
+        if 'release_date' in self.album.keys():
+            self.release_date = album['release_date']
+            self.axis_label = self.name + ' (' + self.release_date + ')'
         self.features = {}
         self.tracks = OrderedDict()
         self.num_tracks = 0
@@ -143,26 +144,29 @@ class Graph:
         if self.search_select.active == 0:
             results = sp.search(q='artist:' + self.text_input.value, type='artist', limit=1)
             items = results['artists']['items']
+            print("searched artist")
             if len(items) > 0:
                 self.ds = Artist(items[0])
         else:
             results = sp.search(q='album:' + self.text_input.value, type='album', limit=1)
+            print("searched album")
             items = results['albums']['items']
             if len(items) > 0:
                 self.ds = Album(items[0])
-        print("searched")
         if self.ds:
             self.update_data()
 
-    def search_spotify2(self, name):
-        if self.search_select.active == 0:
+    def search_spotify2(self, name, type):
+        if type is 'artist':
             results = sp.search(q='artist:' + name, type='artist', limit=1)
             items = results['artists']['items']
+            print("searched artist")
             if len(items) > 0:
                 self.ds = Artist(items[0])
         else:
             results = sp.search(q='album:' + name, type='album', limit=1)
             items = results['albums']['items']
+            print("searched album")
             if len(items) > 0:
                 self.ds = Album(items[0])
         self.update_data()
@@ -230,6 +234,7 @@ class Graph:
 
 
 graph = Graph()
+# graph.search_spotify2('the earth is not a cold dead place', 'album')
 
 
 

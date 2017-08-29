@@ -1,6 +1,7 @@
 import spotipy
 import string
 import dev_settings
+from lastfm import LastFM
 from bokeh.palettes import Paired8
 from bokeh.plotting import *
 from bokeh.models import *
@@ -12,6 +13,8 @@ from math import pi
 client_credentials_manager = SpotifyClientCredentials(dev_settings.SPOTIFY_CLIENT_ID, dev_settings.SPOTIFY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 sp.trace = False
+
+lastfm = LastFM()
 
 class Artist:
     def __init__(self, search):
@@ -34,9 +37,13 @@ class Artist:
             result = sp.album(album['id'])
             album['release_date'] = result['release_date'][:4]
         album_search.sort(key=lambda album:int(album['release_date']))
-        for album in album_search:
+        for album in album_search: #make each album into class
             name = album['name'].replace(':','')
-            self.albums[name] = Album(album)
+            self.albums[name] = Album(self.artist['name'], album)
+        max_plays = max([album.plays for album in self.albums.values()])
+        for album in self.albums.values():
+            album.scaled_plays = album.plays / max_plays
+            album.features['plays'] = album.scaled_plays
 
     def print_all(self):
         print('====', self.name, '====')
@@ -49,8 +56,9 @@ class Artist:
             print()
 
 class Album:
-    def __init__(self, album):
+    def __init__(self, artist, album):
         self.type = 'album'
+        self.artist = artist
         self.album = album
         self.name = album['name'].translate(str.maketrans("", "", string.punctuation))
         if 'release_date' in self.album.keys():
@@ -60,14 +68,21 @@ class Album:
         self.tracks = OrderedDict()
         self.num_tracks = 0
         self.duration_ms = 0
+        self.listeners, self.plays = lastfm.get_album_listeners_plays(artist, album['name'])
+        # print('{}: listeners: {}, plays:{}.'.format(self.name, self.listeners, self.plays))
+        self.scaled_plays = 0
         self.search_tracks()
 
     def search_tracks(self):
         results = sp.album_tracks(self.album['id'])
         for track in results['items']:
-            self.tracks[track['name']] = Track(track)
+            self.tracks[track['name']] = Track(self.artist, track)
             self.duration_ms += track['duration_ms']
         self.num_tracks = len(self.tracks)
+        max_plays = max([track.plays for track in self.tracks.values()])
+        for track in self.tracks.values():
+            track.scaled_plays = track.plays / max_plays
+            track.features['plays'] = track.scaled_plays
         self.calc_features()
 
     def calc_features(self):
@@ -86,11 +101,14 @@ class Album:
             print(key, " : ", round(value,2))
 
 class Track:
-    def __init__(self, track):
+    def __init__(self, artist, track):
         self.track = track
+        self.artist = artist
         self.name = track['name']
         self.axis_label = track['name']
         self.duration_ms = track['duration_ms']
+        self.listeners, self.plays = lastfm.get_track_listeners_plays(artist, track['name'])
+        self.scaled_plays = 0
         self.features = sp.audio_features(track['id'])[0]
 
     def print_all(self):
@@ -98,16 +116,16 @@ class Track:
 
 class Graph:
     def __init__(self):
-        self.colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black']
-        self.selected_colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black']
-        self.graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
-        self.selected_graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence']
+        self.colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black', 'white']
+        self.selected_colors = ['red', 'yellow', 'blue', 'green', 'orange', 'brown', 'purple', 'black', 'white']
+        self.graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence', 'Plays']
+        self.selected_graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence', 'Plays']
         self.feat_color_dict = dict(zip(self.graph_features, self.colors))
 
         self.search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0, width=200)
         self.text_input = TextInput(value="", title="", width=200)
         self.search_button = Button(label="Search",button_type="success", width=200)
-        self.feature_choices = CheckboxButtonGroup(labels=self.graph_features, active=[0,1,2,3,4,5,6,7], width=50)
+        self.feature_choices = CheckboxButtonGroup(labels=self.graph_features, active=[0,1,2,3,4,5,6,7,8], width=50)
         self.controls = widgetbox(self.search_select, self.text_input, self.search_button, self.feature_choices)
 
         self.search_button.on_click(self.search_spotify)
@@ -125,7 +143,7 @@ class Graph:
         self.p.title.text = "Artist / Album"
         self.p.title.align = "center"
         self.p.background_fill_color = "gray"
-        self.p.background_fill_alpha = 0.5
+        self.p.background_fill_alpha = 0.4
 
         self.ml = self.p.multi_line(xs=[], ys=[], line_color=[])
         self.mlds = self.ml.data_source
@@ -152,7 +170,7 @@ class Graph:
             print("searched album")
             items = results['albums']['items']
             if len(items) > 0:
-                self.ds = Album(items[0])
+                self.ds = Album(items[0]['artists'][0]['name'], items[0])
         if self.ds:
             self.update_data()
 
@@ -168,8 +186,9 @@ class Graph:
             items = results['albums']['items']
             print("searched album")
             if len(items) > 0:
-                self.ds = Album(items[0])
-        self.update_data()
+                # print(items[0]['artists'][0]['name'])
+                self.ds = Album(items[0]['artists'][0]['name'],items[0])
+        # self.update_data()
 
     def update_features(self, attr, old, new):
         self.selected_graph_features = []
@@ -204,7 +223,7 @@ class Graph:
         self.p.title.text = self.ds.name
         self.p.title.align = "center"
         self.p.x_range.factors = [val.axis_label for val in data.values()]
-        self.p.xaxis.axis_label = "Albums" if self.search_select.active == 0 else 'Tracks'
+        self.p.xaxis.axis_label = "Albums" if self.ds.type is 'artist' else 'Tracks'
         self.p.yaxis.axis_label = "Scaled Features"
         self.p.xaxis.axis_label_standoff = 20
         self.p.yaxis.axis_label_standoff = 20
@@ -213,24 +232,6 @@ class Graph:
 
         self.mlds.data = dict(xs=lines_x, ys=lines_y, line_color=self.selected_colors)
         self.cds.data = dict(x=x, y=y, fill_color=self.selected_colors*len(data.values()))
-
-    # def build_legend(self, lx, ly):
-    #     leg_items = [0,0,0,0,0,0,0,0]
-    #     i = 0 #Build Legend
-    #     for (colr, _x, _y) in zip(self.colors, lx[0], ly[0]):
-    #         leg_items[i] = self.p.circle([_x], [_y], size=15, fill_color=colr)
-    #         i += 1
-    #     legend = Legend(items=[
-    #         ("Danceability"   , [leg_items[0]]),
-    #         ("Energy" , [leg_items[1]]),
-    #         ("Mode" , [leg_items[2]]),
-    #         ("Speechiness", [leg_items[3]]),
-    #         ("Acousticness", [leg_items[4]]),
-    #         ("Instrumentalness", [leg_items[5]]),
-    #         ("Liveness", [leg_items[6]]),
-    #         ("Valence", [leg_items[7]]),
-    #     ], location=(0, -30))
-    #     self.p.add_layout(legend, 'right')
 
 
 graph = Graph()

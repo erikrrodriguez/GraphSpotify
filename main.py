@@ -186,9 +186,8 @@ class Graph:
             items = results['albums']['items']
             print("searched album")
             if len(items) > 0:
-                # print(items[0]['artists'][0]['name'])
                 self.ds = Album(items[0]['artists'][0]['name'],items[0])
-        # self.update_data()
+        self.update_data()
 
     def update_features(self, attr, old, new):
         self.selected_graph_features = []

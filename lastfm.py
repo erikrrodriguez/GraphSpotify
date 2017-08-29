@@ -1,6 +1,6 @@
 from dev_settings import LAST_FM_API_KEY, LAST_FM_SECRET
 import pylast
-
+#
 class LastFM:
     def __init__(self):
         self.network = pylast.LastFMNetwork(api_key=LAST_FM_API_KEY, api_secret=LAST_FM_SECRET)

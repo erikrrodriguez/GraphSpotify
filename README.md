@@ -11,5 +11,4 @@ Currently a work in progress. Eventually intended to be a webapp.
 
 # TO DO
 * Add Legend
-* Allow search by album
 * Add a "popularity" metric.

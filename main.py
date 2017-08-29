@@ -74,8 +74,8 @@ class Album:
                                'liveness':0, 'valence':0, 'tempo':0, 'duration_ms':0, 'time_signature':0}
         for key in self.features: #average tracks
             for track in self.tracks:
-                self.features[key] = self.features[key] + (self.tracks[track].features[key] * (self.tracks[track].duration_ms / self.duration_ms)) #weighted avg by duration
-                # self.features[key] = self.features[key] + (self.tracks[track].features[key] / self.num_tracks) #non-weighted
+                self.features[key] = self.features[key] + (self.tracks[track].features[key] 
+                                                        * (self.tracks[track].duration_ms / self.duration_ms)) #weighted avg by duration
 
     def print_all(self):
         print((self.name + ' (' + self.release_date + ') : ' + str(self.num_tracks) + ' tracks'))
@@ -117,8 +117,10 @@ class Graph:
 
         self.p = figure(title='', 
                        x_range=[''], y_range=(0.0,1.03),
-                       tools='pan, wheel_zoom',toolbar_location="above", toolbar_sticky=False,
-                       width=750, height=750)
+                       toolbar_location=None,
+                       width=750, height=750,
+                       responsive=True,
+                       )
         self.p.title.text = "Artist / Album"
         self.p.title.align = "center"
         self.p.background_fill_color = "gray"
@@ -130,6 +132,7 @@ class Graph:
         self.cds = self.c.data_source
 
         self.layout = row(self.controls, self.p)
+
         curdoc().add_root(self.layout)
         curdoc().title = "Spotify Graph"
 
@@ -167,9 +170,9 @@ class Graph:
     def update_features(self, attr, old, new):
         self.selected_graph_features = []
         self.selected_colors = []
-        for i in self.feature_choices.active:
-            self.selected_graph_features.extend(self.graph_features[i])
-        self.selected_colors = [self.feat_color[key] for key in self.selected_graph_features]
+        for num in self.feature_choices.active:
+            self.selected_graph_features.append(self.graph_features[num])
+        self.selected_colors = [self.feat_color_dict[key] for key in self.selected_graph_features]
         print('features updated')
         self.update_data()
 
@@ -188,29 +191,45 @@ class Graph:
         lines_x = [[val.axis_label for val in data.values()]]*len(self.selected_graph_features)
         lines_y = list(map(list,zip(*ly)))
 
-        i = 0 #Build Legend
-        for (colr, _x, _y) in zip(self.colors, lx[0], ly[0]):
-            self.p.circle([_x], [_y], size=15, fill_color=colr, legend=self.selected_graph_features[i])
-            i += 1
+        # self.build_legend(lx, ly)
+        # i = 0 #Build Legend
+        # for (colr, _x, _y) in zip(self.selected_colors, lx[0], ly[0]):
+        #     self.p.circle([_x], [_y], size=15, fill_color=colr, legend=self.selected_graph_features[i])
+        #     i += 1
 
         self.p.title.text = self.ds.name
         self.p.title.align = "center"
         self.p.x_range.factors = [val.axis_label for val in data.values()]
-        # p.width = max(750, min(200*len(data.keys()),1300))
-        self.p.width = 750
-        self.p.height = 750
         self.p.xaxis.axis_label = "Albums" if self.search_select.active == 0 else 'Tracks'
         self.p.yaxis.axis_label = "Scaled Features"
         self.p.xaxis.axis_label_standoff = 20
         self.p.yaxis.axis_label_standoff = 20
         self.p.xaxis.major_label_orientation = pi/4
-        self.p.legend.location = "top_right"
+        # self.p.legend.location = "top_right"
 
         self.mlds.data = dict(xs=lines_x, ys=lines_y, line_color=self.selected_colors)
         self.cds.data = dict(x=x, y=y, fill_color=self.selected_colors*len(data.values()))
 
-if __name__ == "__main__":
-    graph = Graph()
+    # def build_legend(self, lx, ly):
+    #     leg_items = [0,0,0,0,0,0,0,0]
+    #     i = 0 #Build Legend
+    #     for (colr, _x, _y) in zip(self.colors, lx[0], ly[0]):
+    #         leg_items[i] = self.p.circle([_x], [_y], size=15, fill_color=colr)
+    #         i += 1
+    #     legend = Legend(items=[
+    #         ("Danceability"   , [leg_items[0]]),
+    #         ("Energy" , [leg_items[1]]),
+    #         ("Mode" , [leg_items[2]]),
+    #         ("Speechiness", [leg_items[3]]),
+    #         ("Acousticness", [leg_items[4]]),
+    #         ("Instrumentalness", [leg_items[5]]),
+    #         ("Liveness", [leg_items[6]]),
+    #         ("Valence", [leg_items[7]]),
+    #     ], location=(0, -30))
+    #     self.p.add_layout(legend, 'right')
+
+
+graph = Graph()
 
 
 

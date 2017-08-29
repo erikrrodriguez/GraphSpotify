@@ -7,7 +7,7 @@ Uses Spotipy Library:https://github.com/plamere/spotipy for API access and Bokeh
 
 Currently a work in progress. Eventually intended to be a webapp.
 
-![Graph Spotify](http://i.imgur.com/NAUdDvD.jpg)
+![Graph Spotify](http://i.imgur.com/iBaxUCp.jpg)
 
 # TO DO
 * Add Legend

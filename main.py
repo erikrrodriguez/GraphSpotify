@@ -2,7 +2,6 @@ import spotipy
 import string
 import dev_settings
 from lastfm import LastFM
-from bokeh.palettes import Paired8
 from bokeh.plotting import *
 from bokeh.models import *
 from bokeh.layouts import *
@@ -139,6 +138,7 @@ class Graph:
         self.graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence', 'Plays']
         self.selected_graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence', 'Plays']
         self.feat_color_dict = dict(zip(self.graph_features, self.colors))
+        self.color_feat_dict = dict(zip(self.colors, self.graph_features))
 
         self.search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0, width=200)
         self.text_input = TextInput(value="", title="", width=200)
@@ -152,21 +152,32 @@ class Graph:
         self.ds = []
         self.legend = []
 
-        self.p = figure(title='', 
+        self.p = figure(title='Artist / Album',
                        x_range=[''], y_range=(0.0,1.03),
                        toolbar_location=None,
-                       width=750, height=750,
-                       responsive=True,
+                       width=1000, height=1000,
+                       responsive=True
                        )
-        self.p.title.text = "Artist / Album"
         self.p.title.align = "center"
         self.p.background_fill_color = "gray"
-        self.p.background_fill_alpha = 0.4
+        self.p.background_fill_alpha = 0.3
+        self.p.yaxis.major_tick_line_color = None
+        self.p.yaxis.minor_tick_line_color = None
+        self.p.xaxis.major_tick_line_color = None
+        self.p.xaxis.minor_tick_line_color = None
+        self.p.xgrid.grid_line_color = None
+        self.p.xaxis.axis_line_color = None
+        self.p.yaxis.axis_line_color = None
 
         self.ml = self.p.multi_line(xs=[], ys=[], line_color=[])
         self.mlds = self.ml.data_source
         self.c = self.p.circle(x=[], y=[], size=15, fill_color=[])
         self.cds = self.c.data_source
+
+        self.hover = HoverTool(tooltips=[('', '@x : @y')],
+                                renderers=[self.c])
+
+        self.p.tools.append(self.hover)
 
         self.layout = row(self.controls, self.p)
 
@@ -214,7 +225,8 @@ class Graph:
             self.selected_graph_features.append(self.graph_features[num])
         self.selected_colors = [self.feat_color_dict[key] for key in self.selected_graph_features]
         print('features updated')
-        self.update_data()
+        if self.ds:
+            self.update_data()
 
     def update_data(self):
         print('graphing...')
@@ -238,7 +250,7 @@ class Graph:
         #     self.p.circle([_x], [_y], size=15, fill_color=colr, legend=self.selected_graph_features[i])
         #     i += 1
 
-        self.p.title.text = self.ds.name
+        self.p.title.text = self.ds.name if self.ds.type is 'artist' else '{} by {}'.format(self.ds.name, self.ds.artist)
         self.p.title.align = "center"
         self.p.x_range.factors = [val.axis_label for val in data.values()]
         self.p.xaxis.axis_label = "Albums" if self.ds.type is 'artist' else 'Tracks'

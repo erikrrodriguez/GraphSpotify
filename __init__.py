@@ -15,6 +15,6 @@ if not app.debug:
 
 @app.route("/")
 def hello():
-    # Only warn or higher work
+    # TODO: Only warn or higher work - possibly Flask related
     app.logger.warn("Testing logging capability.")
     return "Front end of Flask (thus far)"

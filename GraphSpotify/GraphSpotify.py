@@ -1,18 +1,24 @@
 import os
 import sys
+from .lastfm import LastFM
 from flask import Flask
 
 app = Flask(__name__)
+
+# TODO: move to separate configuration file
+LOG_FILE = "/var/www/apps/SpotifyGraph/logs/SpotifyGraph.log"
 
 if not app.debug:
     import logging
     from logging import FileHandler
     from logging import Formatter
 
-    # TODO: fix permissions on this file to be more restrictive..
-    file_handler = FileHandler('/var/www/apps/SpotifyGraph/logs/SpotifyGraph.log')
+    # TODO: fix permissions on this file to be more restrictive
+    file_handler = FileHandler(LOG_FILE)
     file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(Formatter('''%(asctime)s %(levelname)s: %(pathname)s:%(lineno)d %(module)s:%(funcName)s %(message)s'''))
+    file_handler.setFormatter(Formatter(
+        "%(asctime)s %(levelname)s: %(pathname)s:"
+        + "%(lineno)d %(module)s:%(funcName)s %(message)s"))
     app.logger.addHandler(file_handler)
 
 # TODO:

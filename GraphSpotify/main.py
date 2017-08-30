@@ -1,3 +1,4 @@
+import sys
 import spotipy
 import string
 import dev_settings
@@ -92,7 +93,7 @@ class Album:
                                'liveness':0, 'valence':0, 'tempo':0, 'duration_ms':0, 'time_signature':0}
         for key in self.features: #average tracks
             for track in self.tracks:
-                self.features[key] = self.features[key] + (self.tracks[track].features[key] 
+                self.features[key] = self.features[key] + (self.tracks[track].features[key]
                                                         * (self.tracks[track].duration_ms / self.duration_ms)) #weighted avg by duration
 
     def print_all(self):
@@ -250,7 +251,7 @@ class Graph:
         self.p.xaxis.axis_label_standoff = 20
         self.p.yaxis.axis_label_standoff = 20
         self.p.xaxis.major_label_orientation = pi/4
-        
+
         self.mlds.data = dict(xs=lines_x, ys=lines_y, line_color=self.selected_colors)
         self.cds.data = dict(x=x, y=y, fill_color=self.selected_colors*len(data.values()))
 
@@ -260,8 +261,6 @@ sp.trace = False
 
 lastfm = LastFM()
 graph = Graph()
+
 # graph.search_spotify2('the earth is not a cold dead place', 'album')
 # graph.search_spotify2('Erbear', 'artist')
-
-
-

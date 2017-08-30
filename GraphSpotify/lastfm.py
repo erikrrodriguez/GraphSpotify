@@ -1,10 +1,4 @@
-# TODO: eliminate need for this weird work-around:
-#       GraphSpotify.py requires the dot, main.py requires no dot
-#try:
-#    from .dev_settings import LAST_FM_API_KEY, LAST_FM_SECRET
-#except SystemError:
 from .dev_settings import LAST_FM_API_KEY, LAST_FM_SECRET
-#from GraphSpotify.dev_settings import LAST_FM_API_KEY, LAST_FM_SECRET
 
 import pylast
 

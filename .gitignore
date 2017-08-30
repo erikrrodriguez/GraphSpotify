@@ -1,4 +1,6 @@
-dev_settings.py
+*dev_settings.py
 lines.html
 __pycache__/
 *.pyc
+*.egg-info
+venv/

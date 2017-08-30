@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>
+        {% block head %}
+        <meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+		<title>{% block title %}{% endblock %} | GraphSpotify</title>
+
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" type="text/css" />
+		<link rel='stylesheet' href='{{ url_for('static', filename='style.css') }}' type="text/css" />
+        {# Highcharts
+		<link rel="stylesheet" href="//code.highcharts.com/css/highcharts.css" type="text/css" />
+		<script src="//code.highcharts.com/js/highcharts.js"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='main.js') }}"></script>
+        #}
+        {% endblock %}
+	</head>
+	<body>
+		<div id="page" class="container-fluid">
+			<header>
+                {% block navigation %}{% endblock %}
+			</header>
+			<main>
+{% block content %}{% endblock %}
+            </main>
+            <footer>
+                {% block footer %}
+                {# Highcharts
+                <p>Visualization made with <a href="https://www.highcharts.com/">Highcharts</a>.</p>
+                #}
+                <p>Code by <a href="https://github.com/erikrrodriguez/">Erik Rodriguez</a> and <a href="https://www.kevinjb.com">Kevin Boyer.</a></p>
+                {% endblock %}
+            </footer>
+        </div>
+    </body>
+</html>

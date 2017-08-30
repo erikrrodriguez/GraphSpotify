@@ -1,20 +1,34 @@
-import os
-import sys
 import logging
 from logging import FileHandler
 from logging import Formatter
-from .lastfm import LastFM
-from flask import Flask
+
+# bokeh import here
+
+from flask import Flask, render_template, url_for
 
 app = Flask(__name__)
 
-# TODO: move to separate configuration file
-LOG_FILE = "/var/www/apps/SpotifyGraph/logs/SpotifyGraph.log"
+@app.route("/")
+def home():
+    app.logger.debug("Serving home page.")
+    return render_template("home.html")
 
-# TODO: change logging levels based on debug status
-#       and alter this code to appear after enable_logging is defined
-if not app.debug:
-    enable_logging(LOG_FILE, logging.DEBUG)
+# TODO:
+@app.route("/artist/<id>")
+def artist(id):
+    app.logger.debug("Serving artist %s." % id)
+    return "Page for artist: %s" % id
+
+# TODO:
+@app.route("/album/<id>")
+def album(id):
+    app.logger.debug("Serving album %s." % id)
+    return "Page for album: %s" % id
+
+# TODO:
+#@app.errorhandler(404)
+#def page_not_found(error):
+#    return render_template('404.html'), 404
 
 def enable_logging(log_file, log_level):
     # TODO: fix permissions on this file to be more restrictive
@@ -22,28 +36,19 @@ def enable_logging(log_file, log_level):
     file_handler.setLevel(log_level)
     file_handler.setFormatter(Formatter(
         "%(asctime)s %(levelname)s: %(pathname)s:"
-        + "%(lineno)d %(module)s:%(funcName)s %(message)s"))
+        "%(lineno)d %(module)s:%(funcName)s %(message)s"))
     app.logger.addHandler(file_handler)
 
-# TODO:
-@app.route("/")
-def home():
-    app.logger.debug("Beginning to serve home page.")
-    return "<h1>Front page of GraphSpotify</h1>" + sys.version
+# Set some app-wide variables here
 
-# TODO:
-@app.route("/artist/<artist_id>")
-def show_artist(artist_id):
-    app.logger.debug("Beginning to serve artist %s." % artist_id)
-    return "Page for artist: %s" % artist_id
+# TODO: change logging levels based on debug status
+#       and alter this code to appear after enable_logging is defined
+# TODO: move to separate configuration file
+LOG_FILE = "/var/www/apps/SpotifyGraph/logs/SpotifyGraph.log"
 
-# TODO:
-@app.route("/album/<album_id>")
-def show_album(album_id):
-    app.logger.debug("Beginning to serve album %s." % album_id)
-    return "Page for album: %s" % album_id
+if not app.debug:
+    enable_logging(LOG_FILE, logging.DEBUG)
 
-# TODO:
-#@app.errorhandler(404)
-#def page_not_found(error):
-#    return render_template('404.html'), 404
+# Cleaner whitespace in rendered HTML
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True

@@ -1,8 +1,8 @@
 import sys
 import spotipy
 import string
-import dev_settings
-from lastfm import LastFM
+from GraphSpotify import dev_settings
+from GraphSpotify.lastfm import LastFM
 from bokeh.plotting import * #Target Bokeh 0.12.5
 from bokeh.models import *
 from bokeh.layouts import *

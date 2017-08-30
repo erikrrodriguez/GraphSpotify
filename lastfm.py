@@ -14,5 +14,3 @@ class LastFM:
         listeners = self.network.get_track(artist, track).get_listener_count()
         plays = self.network.get_track(artist, track).get_playcount()
         return listeners, plays
-
-last = LastFM()

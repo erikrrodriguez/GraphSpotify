@@ -2,18 +2,12 @@ import spotipy
 import string
 import dev_settings
 from lastfm import LastFM
-from bokeh.plotting import *
+from bokeh.plotting import * #Target Bokeh 0.12.5
 from bokeh.models import *
 from bokeh.layouts import *
 from spotipy.oauth2 import SpotifyClientCredentials
 from collections import OrderedDict
 from math import pi
-
-client_credentials_manager = SpotifyClientCredentials(dev_settings.SPOTIFY_CLIENT_ID, dev_settings.SPOTIFY_CLIENT_SECRET)
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-sp.trace = False
-
-lastfm = LastFM()
 
 class Artist:
     def __init__(self, artist, search_type='artist'):
@@ -70,7 +64,6 @@ class Album:
             self.axis_label = self.name + ' (' + self.release_date + ')'
         self.features = {}
         self.tracks = OrderedDict()
-        self.num_tracks = 0
         self.duration_ms = 0
         print('getting lastfm album data...')
         self.listeners, self.plays = lastfm.get_album_listeners_plays(artist, album['name'])
@@ -85,13 +78,12 @@ class Album:
         for track in results['items']:
             self.tracks[track['name']] = Track(self.artist, track, self.search_type)
             self.duration_ms += track['duration_ms']
-        self.num_tracks = len(self.tracks)
-        print('calculating track plays...')
-        max_plays = max([track.plays for track in self.tracks.values()])
-        for track in self.tracks.values():
-            if self.search_type is 'album':
+        if self.search_type is 'album': #only calc track plays if searching by album
+            print('calculating track plays...')
+            max_plays = max([track.plays for track in self.tracks.values()])
+            for track in self.tracks.values():
                 track.scaled_plays = track.plays / max_plays
-            track.features['plays'] = track.scaled_plays
+                track.features['plays'] = track.scaled_plays
         self.calc_features()
 
     def calc_features(self):
@@ -104,7 +96,7 @@ class Album:
                                                         * (self.tracks[track].duration_ms / self.duration_ms)) #weighted avg by duration
 
     def print_all(self):
-        print((self.name + ' (' + self.release_date + ') : ' + str(self.num_tracks) + ' tracks'))
+        print((self.name + ' (' + self.release_date + ')'))
         for track in self.tracks.values():
             track.print_all()
         for key, value in self.features.items():
@@ -138,7 +130,6 @@ class Graph:
         self.graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence', 'Plays']
         self.selected_graph_features = ['Danceability', 'Energy', 'Mode', 'Speechiness', 'Acousticness', 'Instrumentalness','Liveness', 'Valence', 'Plays']
         self.feat_color_dict = dict(zip(self.graph_features, self.colors))
-        self.color_feat_dict = dict(zip(self.colors, self.graph_features))
 
         self.search_select = RadioButtonGroup(labels=["Artist", "Album"], active=0, width=200)
         self.text_input = TextInput(value="", title="", width=200)
@@ -168,13 +159,14 @@ class Graph:
         self.p.xgrid.grid_line_color = None
         self.p.xaxis.axis_line_color = None
         self.p.yaxis.axis_line_color = None
+        self.p.min_border_bottom = 100
 
         self.ml = self.p.multi_line(xs=[], ys=[], line_color=[])
         self.mlds = self.ml.data_source
         self.c = self.p.circle(x=[], y=[], size=15, fill_color=[])
         self.cds = self.c.data_source
 
-        self.hover = HoverTool(tooltips=[('', '@x : @y')],
+        self.hover = HoverTool(tooltips=[('Val:', '@y')],
                                 renderers=[self.c])
 
         self.p.tools.append(self.hover)
@@ -258,15 +250,18 @@ class Graph:
         self.p.xaxis.axis_label_standoff = 20
         self.p.yaxis.axis_label_standoff = 20
         self.p.xaxis.major_label_orientation = pi/4
-        # self.p.legend.location = "top_right"
-
+        
         self.mlds.data = dict(xs=lines_x, ys=lines_y, line_color=self.selected_colors)
         self.cds.data = dict(x=x, y=y, fill_color=self.selected_colors*len(data.values()))
 
+client_credentials_manager = SpotifyClientCredentials(dev_settings.SPOTIFY_CLIENT_ID, dev_settings.SPOTIFY_CLIENT_SECRET)
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+sp.trace = False
 
+lastfm = LastFM()
 graph = Graph()
 # graph.search_spotify2('the earth is not a cold dead place', 'album')
-# graph.search_spotify2('Flying Lotus', 'artist')
+# graph.search_spotify2('Erbear', 'artist')
 
 
 

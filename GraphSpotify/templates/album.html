@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block title %}Visualizing {{ album_title }} by {{ artist_title }}{% endblock %}
+{% block content %}
+                <h1>Visualizing {{ album_title }} by {{ artist_title }}</h1>
+                <ul>
+                    <li>LastFM Listeners: {{ listeners }}</li>
+                    <li>LastFM Plays: {{ plays }}</li>
+                </ul>
+{% endblock %}

@@ -4,7 +4,7 @@
                 <h1>Welcome to GraphSpotify</h1>
                 <p>Try the links below:</p>
                 <ul>
-                    <li>Visualize <a href="{{ url_for('artist', id='3iOvXCl6edW5Um0fXEBRXy') }}">The xx</a></li>
-                    <li>Visualize <a href="{{ url_for('album', id='2cRMVS71c49Pf5SnIlJX3U') }}">Coexist by The xx</a></li>
+                    <li>Visualize <a href="{{ url_for("visualize", artist="the+xx") }}">The xx</a></li>
+                    <li>Visualize <a href="{{ url_for("visualize", artist="the+xx", album="coexist") }}">Coexist by The xx</a></li>
                 </ul>
 {% endblock %}

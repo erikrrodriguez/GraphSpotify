@@ -1,4 +1,5 @@
 import sys
+import logging
 import spotipy
 import string
 from GraphSpotify import dev_settings
@@ -59,7 +60,7 @@ class Album:
         self.search_type = search_type
         self.artist = artist
         self.album = album
-        self.name = album['name'].translate(str.maketrans("", "", string.punctuation)) #bokeh labels can't handle certian chars
+        self.name = album['name'].translate(str.maketrans("", "", string.punctuation)) #bokeh labels can't handle certain chars
         if 'release_date' in self.album.keys():
             self.release_date = album['release_date']
             self.axis_label = self.name + ' (' + self.release_date + ')'
@@ -259,7 +260,7 @@ client_credentials_manager = SpotifyClientCredentials(dev_settings.SPOTIFY_CLIEN
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 sp.trace = False
 
-lastfm = LastFM()
+lastfm = LastFM(logging, dev_settings.LAST_FM_API_KEY, dev_settings.LAST_FM_SECRET)
 graph = Graph()
 
 # graph.search_spotify2('the earth is not a cold dead place', 'album')

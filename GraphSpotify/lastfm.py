@@ -7,6 +7,7 @@ class LastFM:
         self.network = pylast.LastFMNetwork(api_key, api_secret)
 
 
+    # TODO: get listeners & plays for each track on album
     def get_album(self, album):
         artist_query = album["artist_query"].replace("+", " ")
         album_query = album["album_query"].replace("+", " ")

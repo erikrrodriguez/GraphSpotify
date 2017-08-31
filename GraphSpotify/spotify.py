@@ -120,7 +120,21 @@ class Spotify:
         return {
             "name" : result["name"],
             "track_number" : result["track_number"],
-            "audio_features" : result["audio_features"],
+            "audio_features" : {
+                "danceability" : result["audio_features"]["danceability"],
+                "key" : result["audio_features"]["key"],
+                "energy" : result["audio_features"]["energy"],
+                "loudness" : result["audio_features"]["loudness"],
+                "mode" : result["audio_features"]["mode"],
+                "speechiness" : result["audio_features"]["speechiness"],
+                "acousticness" : result["audio_features"]["acousticness"],
+                "instrumentalness" : result["audio_features"]["instrumentalness"],
+                "liveness" : result["audio_features"]["liveness"],
+                "valence" : result["audio_features"]["valence"],
+                "tempo" : result["audio_features"]["tempo"],
+                "duration_ms" : result["audio_features"]["duration_ms"],
+                "time_signature" : result["audio_features"]["time_signature"]
+            },
             "spotify" : {
                 "id" : result["id"],
                 "url" : result["external_urls"]["spotify"],

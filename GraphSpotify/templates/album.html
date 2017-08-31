@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Visualizing {{ name }} by {{ artist.name }}{% endblock %}
 {% block content %}
-                <h1>Visualizing {{ name }} by {{ artist.name }}</h1>
+                <h1>Visualizing {{ name }} by <a href="{{ url_for("visualize", artist=artist.url) }}" title="Visualize {{ artist.name }}">{{ artist.name }}</a></h1>
                 <h2>LastFM Data</h2>
                 <ul>
                     <li>LastFM Listeners: {{ listeners }}</li>

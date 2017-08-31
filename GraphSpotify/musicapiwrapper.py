@@ -1,12 +1,9 @@
 from lastfm import LastFM
 from spotify import Spotify
 from dev_settings import *
-from album import Album
-from artist import Artist
-from track import Track
 
-# Returns objects from queries
-# It pulls from APIs to build rich Artist(), Album(), and Track() objects
+# Returns dictionaries from queries
+# In theory, all dictionaries should be easily convertable to JSON
 # Query examples:
 #   { "artist" : "the+xx" }
 #   { "artist" : "the+xx", "album" : "coexist" }
@@ -25,9 +22,9 @@ class MusicApiWrapper:
         query = self.plus_to_space(query)
         self.logger.debug("Processed to <%s>." % repr(query))
 
-        # Request for album?
         if "artist" in query and "album" in query:
             return self.get_album(query["artist"], query["album"])
+
         elif "artist" in query:
             return self.get_artist(query["artist"])
 
@@ -38,35 +35,37 @@ class MusicApiWrapper:
         self.logger.debug("Getting album <%s> by <%s>..."
                           % (album_query, artist_query))
 
-        result = {"artist_query" : artist_query, "album_query" : album_query}
-        album = Album(result)
+        album = {
+            "type" : "album",
+            "artist_query" : artist_query,
+            "album_query" : album_query
+            }
 
         # Check album exists and get Spotify data if it does
         result = self.spotify.get_album(artist_query, album_query)
         if not result:
             self.logger.debug("No album found, returning False.")
             return False
-        album.load(result)
+        album.update(result)
 
-        album.load( self.lastfm.get_album(album) )
+        album.update( self.lastfm.get_album(album) )
 
         return album
 
 
-    # TODO:
     def get_artist(self, artist_query):
         self.logger.debug("Getting artist <%s>..." % artist_query)
 
-        artist = Artist({ "artist_query" : artist_query })
+        artist = { "type" : "artist", "artist_query" : artist_query }
 
         # Check artist exists and get Spotify data if it does
         result = self.spotify.get_artist(artist_query)
         if not result:
             self.logger.debug("No artist found, returning False.")
             return False
-        artist.load(result)
+        artist.update(result)
 
-        artist.load( self.lastfm.get_artist(artist) )
+        artist.update( self.lastfm.get_artist(artist) )
 
         return artist
 

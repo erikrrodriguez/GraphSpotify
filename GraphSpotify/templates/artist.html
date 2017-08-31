@@ -10,7 +10,7 @@
                 <h2>Albums</h2>
                 <ul>
                 {% for album in albums %}
-                    <li><a href="{{ url_for("visualize", artist=artist_query, album=album.album_query) }}" title="Visualize {{ album.name }} by {{ name }}">{{ album.name }}</a> <em>(<a href="{{ album.spotify.url }}">Spotify</a>)</em></li>
+                    <li><a href="{{ url_for("visualize", artist=url, album=album.url) }}" title="Visualize {{ album.name }} by {{ name }}">{{ album.name }}</a> <em>(<a href="{{ album.spotify.url }}">Spotify</a>)</em></li>
                 {% else %}
                     <li><em>No albums.</em></li>
                 {% endfor %}

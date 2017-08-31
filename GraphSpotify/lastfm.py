@@ -7,10 +7,9 @@ class LastFM:
         self.network = pylast.LastFMNetwork(api_key, api_secret)
 
 
-    def get_album(self, artist):
-        album_query, artist_query = artist.album_query, artist.artist_query
-        artist_query = artist_query.replace("+", " ")
-        album_query = album_query.replace("+", " ")
+    def get_album(self, album):
+        artist_query = album["artist_query"].replace("+", " ")
+        album_query = album["album_query"].replace("+", " ")
 
         self.logger.debug("Searching LastFM for <%s> by <%s>..."
                           % (album_query, artist_query))
@@ -24,9 +23,8 @@ class LastFM:
 
 
     def get_artist(self, artist):
-        artist_query = artist.artist_query
-        artist_query = artist_query.replace("+", " ")
-        
+        artist_query = artist["artist_query"].replace("+", " ")
+
         self.logger.debug("Searching LastFM for artist <%s>..."
                           % artist_query)
         artist = self.network.get_artist(artist_query)

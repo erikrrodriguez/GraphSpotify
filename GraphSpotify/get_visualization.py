@@ -1,45 +1,43 @@
+import urllib
 import string
-from album import Album
-from artist import Artist
 
-# Returns template dictionary from an object (Album, Artist, etc...)
+# Returns template dictionary from another dict
 
-def get_visualization(object):
-    if object.__class__ == Album:
-        return get_visualization_album(object)
-    if object.__class__ == Artist:
-        return get_visualization_artist(object)
+def get_visualization(dict):
+    if dict["type"] == "album":
+        return get_visualization_album(dict)
+    if dict["type"] == "artist":
+        return get_visualization_artist(dict)
 
     return False
 
 
 def get_visualization_album(album):
-    data = album.__dict__
-    data["name"] = parse_chars(data["name"])
+    album["template"] = "album.html"
 
-    data["artist"] = album.artist.__dict__
-    data["artist"]["name"] = parse_chars(data["artist"]["name"])
+    album["url"] = to_url(album["name"])
+    album["artist"]["url"] = to_url(album["artist"]["name"])
 
-    for key, track in enumerate(album.tracks):
-        track = track.__dict__
-        track["name"] = parse_chars(track["name"])
-        data["tracks"][key] = track
-
-    data["template"] = "album.html"
-    return data
+    return album
 
 
 def get_visualization_artist(artist):
-    data = artist.__dict__
-    data["name"] = parse_chars(data["name"])
+    artist["template"] = "artist.html"
 
-#    for album in artist.albums:
-#        data["albums"].ap
+    artist["url"] = to_url(artist["name"])
 
-    data["template"] = "artist.html"
-    return data
+    # probably replacable with a list comprehension??
+    for key, album in enumerate(artist["albums"]):
+        album["url"] = to_url(album["name"])
+        artist["albums"][key] = album
+
+    return artist
 
 
-# TODO: handle unusual chars without erasing
-def parse_chars(name):
-    return name.translate(str.maketrans("", "", string.punctuation))
+def to_url(name):
+    # TODO: move this out of here - it really belongs in Flask somewhere
+    url = name.lower()
+    # Seems like flask does this ??
+    #url = urllib.parse.quote(url)
+    url = url.replace(" ", "+")
+    return url

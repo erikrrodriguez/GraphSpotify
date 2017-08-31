@@ -1,8 +1,5 @@
-import urllib
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from artist import Artist
-from track import Track
 
 class Spotify:
 
@@ -80,7 +77,7 @@ class Spotify:
         tracks = self.get_audio_features(tracks)
 
         # TODO: limit to just information we want
-        tracks = [Track(self.build_track_from(x)) for x in tracks]
+        tracks = [self.build_track_from(track) for track in tracks]
 
         return tracks
 
@@ -108,14 +105,9 @@ class Spotify:
             "name" : artist["name"]
         }
 
-        album_query = result["name"].lower()
-        album_query = urllib.parse.quote(album_query)
-        album_query = album_query.replace("%20", "+")
-
         return { # TODO: include other information
             "name" : result["name"],
-            "album_query" : album_query,
-            "artist" : Artist(artist),
+            "artist" : artist,
             "tracks" : self.get_tracks(result["id"]),
             "spotify" : {
                 "id" : result["id"],

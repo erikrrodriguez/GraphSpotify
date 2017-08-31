@@ -3,6 +3,8 @@
 
 #unused code below
 """
+{{ url_for("visualize", artist=name, album=album.name }}
+
         data["artist_title"] = album_data["artists"][0]["name"]
         data["album_title"] = album_data["name"]
         data["listeners"] = listeners

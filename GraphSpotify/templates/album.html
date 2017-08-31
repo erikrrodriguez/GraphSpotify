@@ -1,9 +1,18 @@
 {% extends "layout.html" %}
-{% block title %}Visualizing {{ album_title }} by {{ artist_title }}{% endblock %}
+{% block title %}Visualizing {{ name }} by {{ artist.name }}{% endblock %}
 {% block content %}
-                <h1>Visualizing {{ album_title }} by {{ artist_title }}</h1>
+                <h1>Visualizing {{ name }} by {{ artist.name }}</h1>
+                <h2>LastFM Data</h2>
                 <ul>
                     <li>LastFM Listeners: {{ listeners }}</li>
                     <li>LastFM Plays: {{ plays }}</li>
                 </ul>
+                <h2>Tracks</h2>
+                <ol>
+                {% for track in tracks %}
+                    <li>{{ track.name }} <em>(<a href="{{ track.spotify.url }}">Spotify</a>)</em></li>
+                {% else %}
+                    <li><em>No tracks.</em></li>
+                {% endfor %}
+                </ol>
 {% endblock %}

@@ -75,8 +75,6 @@ class Spotify:
 
         tracks = result["items"]
         tracks = self.get_audio_features(tracks)
-
-        # TODO: limit to just information we want
         tracks = [self.build_track_from(track) for track in tracks]
 
         return tracks
@@ -105,7 +103,7 @@ class Spotify:
             "name" : artist["name"]
         }
 
-        return { # TODO: include other information
+        return {
             "name" : result["name"],
             "artist" : artist,
             "tracks" : self.get_tracks(result["id"]),

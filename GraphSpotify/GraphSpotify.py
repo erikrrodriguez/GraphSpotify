@@ -3,6 +3,7 @@ from get_visualization import get_visualization
 from flask import Flask, abort, render_template, url_for
 
 
+# TODO: integrate cache here
 app = Flask(__name__)
 
 

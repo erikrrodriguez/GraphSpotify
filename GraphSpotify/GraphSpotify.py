@@ -1,5 +1,5 @@
 from musicapiwrapper import MusicApiWrapper
-from get_visualization import get_visualization
+from pages import get_page_visualize
 from flask import Flask, abort, render_template, url_for
 
 
@@ -16,14 +16,15 @@ def home():
 @app.route("/visualize/<artist>")
 @app.route("/visualize/<artist>/<album>")
 def visualize(**query):
+
     logger.debug("Request to visualize <%s>." % repr(query))
 
-    visualization = get_visualization(music_api.get(query))
-    if not visualization:
-        logger.debug("music_api.get() returned False, sending 404.")
+    template, data = get_page_visualize(music_api, query)
+    if not template:
+        logger.debug("get_page_visualize() returned False, sending 404.")
         abort(404)
 
-    return render_template(visualization["template"], **visualization)
+    return render_template(template, **data)
 
 
 @app.errorhandler(404)

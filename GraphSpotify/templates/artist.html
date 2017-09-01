@@ -1,8 +1,9 @@
 {% extends "layout.html" %}
 {% block title %}Visualizing {{ name }}{% endblock %}
-{% block end_body %}<script>data = {{ json|safe }}</script>{% endblock %}
+{% block end_body %}{{ visualizer_js|safe }}{% endblock %}
 {% block content %}
                 <h1>Visualizing {{ name }}</h1>
+                <div id="visualizer">{{ visualizer_html|safe }}</div>
                 <h2>LastFM Data</h2>
                 <ul>
                     <li>LastFM Listeners: {{ listeners }}</li>

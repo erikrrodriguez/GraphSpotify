@@ -2,7 +2,15 @@
 
 
 #unused code below
+
 """
+        # Uncomment below to make the JSON output human-readable
+        #data["js"] = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
+        data["visualizer_js"] = json.dumps(data, separators=(',', ':'))
+        data["visualizer_js"] = "<script type=\"text/javascript\">data = " + data["visualizer_js"] + "</script>"
+
+        data["visualizer_html"] = "&nbsp;"
+
 {{ url_for("visualize", artist=name, album=album.name }}
 
         data["artist_title"] = album_data["artists"][0]["name"]

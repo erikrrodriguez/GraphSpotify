@@ -1,31 +1,30 @@
-import json
+from visualizer import visualize
 
 # Returns template dictionary from data
 
-def get_visualization(data):
+def get_page_visualize(music_api, query):
+    data = music_api.get(query)
+
     if data["type"] in ["album", "artist"]:
-        data["template"] = data["type"] + ".html"
         data["url"] = to_url(data["name"])
 
         data.pop("album_query", None) # security measure, DO NOT REMOVE
         data.pop("artist_query", None) # security measure, DO NOT REMOVE
-        # Uncomment below to make the JSON output human-readable
-        #data["json"] = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
-        data["json"] = json.dumps(data, separators=(',', ':'))
 
-        return globals()["get_visualization_" + data["type"]](data)
+        data["visualizer_js"], data["visualizer_html"] = visualize(data)
+        data = globals()["get_page_visualize_" + data["type"]](data)
+        return data["type"] + ".html", data
 
-    return False
+    return False, False
 
 
-def get_visualization_album(album):
-
+def get_page_visualize_album(album):
     album["artist"]["url"] = to_url(album["artist"]["name"])
 
     return album
 
 
-def get_visualization_artist(artist):
+def get_page_visualize_artist(artist):
     # probably replacable with a list comprehension??
     for key, album in enumerate(artist["albums"]):
         album["url"] = to_url(album["name"])
@@ -35,7 +34,6 @@ def get_visualization_artist(artist):
 
 
 def to_url(name):
-    # TODO: move this out of here - it really belongs in Flask somewhere
     url = name.lower()
     url = url.replace(" ", "+")
     return url
